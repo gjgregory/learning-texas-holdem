@@ -3,6 +3,7 @@
 import pygtk
 pygtk.require('2.0')
 import gtk
+import texas_holdem
 
 class PlayHoldem:
     def delete_event(self, widget, event, data=None):
@@ -132,6 +133,7 @@ class PlayHoldem:
 
         self.window.add(self.layout)
         self.window.show()
+
 
     def main(self):
         gtk.main()
