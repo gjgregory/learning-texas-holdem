@@ -18,7 +18,7 @@ class PlayHoldem:
         widget.modify_bg(gtk.STATE_PRELIGHT, color)
         #set button caption and default size
         widget.set_label(label)
-        widget.set_size_request(70,70)
+        widget.set_size_request(70, 70)
         widget.show()
 
     def __setImage(self, widget, img_filename, color):
@@ -49,10 +49,12 @@ class PlayHoldem:
         PERU = gtk.gdk.Color(0.8, 0.52, 0.25)
         ROYAL_BLUE = gtk.gdk.Color(0.25, 0.41, 0.88)
         FOREST_GREEN = gtk.gdk.Color(0.13, 0.55, 0.13)
+        SALOON_BROWN = gtk.gdk.Color(0.28, 0.14, 0.04)
 
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Machine Learning Texas Hold'em")
+        self.window.modify_bg(gtk.STATE_NORMAL, SALOON_BROWN)
         self.window.connect("delete_event", self.delete_event)
         self.window.connect("destroy", self.destroy)
         self.window.set_border_width(100)
@@ -137,6 +139,19 @@ class PlayHoldem:
 
     def main(self):
         gtk.main()
+
+        holdem = texas_holdem.HoldemGame()
+        player1 = texas_holdem.Player()
+        player2 = texas_holdem.Player()
+        holdem.add_player(player1)
+        holdem.add_player(player2)
+        print holdem.players
+        print holdem.players[1].card2.img_path
+        print holdem.make_bid(player1, 77)
+        print holdem.make_bid(player2, 10000)
+        print holdem.call(player1)
+        holdem.shuffle()
+        print holdem.players
 
 
 if __name__ == "__main__":
