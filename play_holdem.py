@@ -140,19 +140,6 @@ class PlayHoldem:
     def main(self):
         gtk.main()
 
-        holdem = texas_holdem.HoldemGame()
-        player1 = texas_holdem.Player()
-        player2 = texas_holdem.Player()
-        holdem.add_player(player1)
-        holdem.add_player(player2)
-        print holdem.players
-        print holdem.players[1].card2.img_path
-        print holdem.make_bid(player1, 77)
-        print holdem.make_bid(player2, 10000)
-        print holdem.call(player1)
-        holdem.shuffle()
-        print holdem.players
-
 
 if __name__ == "__main__":
     game = PlayHoldem()
