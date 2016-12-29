@@ -33,7 +33,7 @@ class Player:
 
 
 class HoldemGame:
-    BASE_BID = 0
+    BASE_BID = 10
 
     def __init__(self):
         self.deck = Deck()
@@ -47,7 +47,7 @@ class HoldemGame:
         self.players = []
         self.dealer = None
         self.movecounter = 0
-        self.movetotal = 0
+        self.players_left = 0
 
     def __next_player(self):
         #next player to have a turn is always at index 0
@@ -63,9 +63,11 @@ class HoldemGame:
     def deal(self):
         #deal one card at a time, as per standard poker rules (pointless, i know)
         for p in self.players:
-            p.card1 = self.deck.draw_card()
+            if p.folded == False:
+                p.card1 = self.deck.draw_card()
         for p in self.players:
-            p.card2 = self.deck.draw_card()
+            if p.folded == False:
+                p.card2 = self.deck.draw_card()
 
     def shuffle(self):
         #reset cards
@@ -83,36 +85,41 @@ class HoldemGame:
         self.bid = self.BASE_BID
         self.pot = 0
         self.movecounter = len(self.players)
-        self.movetotal = len(self.players)
+        self.players_left = len(self.players)
         #rotate dealer
         self.dealer = self.players[0]
         self.__next_player()
 
     def __process_round(self):
-        self.movecounter = self.movetotal #reset number of non-volatile moves to be performed.
-        if self.card5.rank is None: self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
-        #draw cards according to game progress
-        if self.card1.rank is None:
-            self.card1 = self.deck.draw_card()
-            self.card2 = self.deck.draw_card()
-            self.card3 = self.deck.draw_card()
-        elif self.card4.rank is None:
-            self.card4 = self.deck.draw_card()
-        elif self.card5.rank is None:
-            self.card5 = self.deck.draw_card()
+        self.movecounter = self.players_left #reset number of non-volatile moves to be performed.
+        #before dealing
+        if self.players[0].card1.rank is None:
+            self.deal()
+        #after dealing
         else:
-            print "all cards are already revealed."
-            #TODO: resolve hand comparisons, reset queue and increment dealer
-            #...
-            #reset next player after dealer to first
-            while self.players[-1] != self.dealer:
+            if self.card5.rank is None: self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
+            #draw cards according to game progress
+            if self.card1.rank is None:
+                self.card1 = self.deck.draw_card()
+                self.card2 = self.deck.draw_card()
+                self.card3 = self.deck.draw_card()
+            elif self.card4.rank is None:
+                self.card4 = self.deck.draw_card()
+            elif self.card5.rank is None:
+                self.card5 = self.deck.draw_card()
+            else:
+                print "all cards are already revealed."
+                #TODO: resolve hand comparisons, reset queue and increment dealer
+                #...
+                #reset next player after dealer to first
+                while self.players[0] != self.dealer:
+                    temp = self.players.pop(0)
+                    self.players.append(temp)
                 temp = self.players.pop(0)
                 self.players.append(temp)
-            temp = self.players.pop(0)
-            self.players.append(temp)
-            return
+                return
         #reset next non-folded player after dealer to first
-        while self.players[-1] != self.dealer:
+        while self.players[0] != self.dealer:
             temp = self.players.pop(0)
             self.players.append(temp)
         self.__next_player()
@@ -135,7 +142,7 @@ class HoldemGame:
             return False
         else:
             if amount > self.bid:
-                self.movecounter = self.movetotal #reset number of non-volatile moves to be performed.
+                self.movecounter = self.players_left #reset number of non-volatile moves to be performed.
             self.movecounter -= 1 #this move counts whether volatile or not
             self.bid = amount
             player.balance -= (amount - player.bid)
@@ -189,9 +196,13 @@ class HoldemGame:
             print "it's not the player's turn yet"
             return False
         self.movecounter -= 1 #this is a non-volatile move
-        self.movetotal -= 1 #the player can't make moves until next round
+        self.players_left -= 1 #the player can't make moves until next round
         player.folded = True
         #turn is over. ready next player's turn.
         self.__next_player()
+        if self.players_left == 1:
+            #TODO: make player actually win the pot
+            print "Some player won because some player folded!"
         if self.movecounter == 0:
             self.__process_round()
+        return True
