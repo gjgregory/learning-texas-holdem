@@ -48,6 +48,7 @@ class HoldemGame:
         self.dealer = None
         self.movecounter = 0
         self.players_left = 0
+        self.finished = False
 
     def __next_player(self):
         #next player to have a turn is always at index 0
@@ -86,9 +87,22 @@ class HoldemGame:
         self.pot = 0
         self.movecounter = len(self.players)
         self.players_left = len(self.players)
+        self.finished = False
         #rotate dealer
         self.dealer = self.players[0]
         self.__next_player()
+
+    def __resolve_game(self):
+        self.finished = True
+        print "Game Complete!"
+        #reset next player after dealer to first
+        while self.players[0] != self.dealer:
+            temp = self.players.pop(0)
+            self.players.append(temp)
+        temp = self.players.pop(0)
+        self.players.append(temp)
+        print "turn order swapped"
+        return
 
     def __process_round(self):
         self.movecounter = self.players_left #reset number of non-volatile moves to be performed.
@@ -96,7 +110,7 @@ class HoldemGame:
         if self.players[0].card1.rank is None:
             self.deal()
         #after dealing
-        else:
+        elif not self.finished:
             if self.card5.rank is None: self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
             #draw cards according to game progress
             if self.card1.rank is None:
@@ -108,16 +122,10 @@ class HoldemGame:
             elif self.card5.rank is None:
                 self.card5 = self.deck.draw_card()
             else:
-                print "all cards are already revealed."
+                self.__resolve_game()
                 #TODO: resolve hand comparisons, reset queue and increment dealer
                 #...
                 #reset next player after dealer to first
-                while self.players[0] != self.dealer:
-                    temp = self.players.pop(0)
-                    self.players.append(temp)
-                temp = self.players.pop(0)
-                self.players.append(temp)
-                return
         #reset next non-folded player after dealer to first
         while self.players[0] != self.dealer:
             temp = self.players.pop(0)
@@ -203,6 +211,7 @@ class HoldemGame:
         if self.players_left == 1:
             #TODO: make player actually win the pot
             print "Some player won because some player folded!"
-        if self.movecounter == 0:
+            self.__resolve_game()
+        elif self.movecounter == 0:
             self.__process_round()
         return True

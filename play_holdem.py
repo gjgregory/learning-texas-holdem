@@ -5,6 +5,7 @@ pygtk.require('2.0')
 import gtk
 import texas_holdem
 import time
+import locale
 
 class PlayHoldem:
     #"constant" variables
@@ -16,6 +17,7 @@ class PlayHoldem:
     ROYAL_BLUE = gtk.gdk.Color(0.25, 0.41, 0.88)
     FOREST_GREEN = gtk.gdk.Color(0.13, 0.55, 0.13)
     SALOON_BROWN = gtk.gdk.Color(0.28, 0.14, 0.04)
+    DARK_SLATE_GRAY = gtk.gdk.Color(0.18, 0.31, 0.31)
 
 
     def delete_event(self, widget, event, data=None):
@@ -52,7 +54,7 @@ class PlayHoldem:
         widget.show()
         self.layout.put(widget, x, y)
 
-    def __updateCards(self):
+    def __updateDisplay(self):
         self.__setCardImage(self.playercard1, self.player.card1, 220, 450)
         self.__setCardImage(self.playercard2, self.player.card2, 330, 450)
 
@@ -62,22 +64,47 @@ class PlayHoldem:
         self.__setCardImage(self.card4, self.game.card4, 385, 250)
         self.__setCardImage(self.card5, self.game.card5, 495, 250)
 
+        self.__setText(self.cpuMoneyText, "CPU: $" + locale.format("%d", self.cpu.balance, grouping=True))
+        self.__setText(self.playerMoneyText, "Player: $" + locale.format("%d", self.cpu.balance, grouping=True))
+
     def __setText(self, widget, text):
         buf = widget.get_buffer()
         buf.set_text(text)
         widget.set_buffer(buf)
         widget.show()
 
+    def __clickShuffle(self, opt):
+        self.game.shuffle()
+        self.buttonShuffle.hide()
+        self.__toggleInterface(True)
+        self.__updateDisplay()
+        if self.game.is_next(self.cpu):
+            self.__cpuMove()
+
+    def __toggleInterface(self, show):
+        self.bidText.set_sensitive(show)
+        self.buttonFold.set_sensitive(show)
+        self.buttonCheck.set_sensitive(show)
+        self.buttonCall.set_sensitive(show)
+        self.buttonRaiseBid.set_sensitive(show)
+        if not show:
+            self.buttonShuffle.show()
+
     def __cpuMove(self):
         self.game.call(self.cpu)
+        if self.game.finished:
+            self.__toggleInterface(False)
 
     def __playerMove(self, opt, move):
         if move == 'FOLD':
-            self.game.fold(self.player)
+            if self.game.fold(self.player) == False:
+                return False
         elif move == 'CHECK':
-            self.game.check(self.player)
+            if self.game.check(self.player) == False:
+                return False
         elif move == 'CALL':
-            self.game.call(self.player)
+            if self.game.call(self.player) == False:
+                return False
         elif move == 'RAISE_BID':
             #get text from TextView
             buf = self.bidText.get_buffer()
@@ -87,12 +114,13 @@ class PlayHoldem:
             if self.game.make_bid(self.player, int(buf.get_text(start, end))) == False:
                 return False
 
-        self.__updateCards()
-
-        time.sleep(1)
-        self.__cpuMove()
-
-        self.__updateCards()
+        if self.game.finished:
+            self.__toggleInterface(False)
+        self.__updateDisplay()
+        #time.sleep(1)
+        if self.game.is_next(self.cpu):
+            self.__cpuMove()
+            self.__updateDisplay()
 
     def __init__(self):
         self.game = texas_holdem.HoldemGame()
@@ -100,7 +128,7 @@ class PlayHoldem:
         self.cpu = texas_holdem.Player()
         self.game.add_player(self.cpu)
         self.game.add_player(self.player)
-        self.game.shuffle()
+        #self.game.shuffle()
         #self.game.deal()
 
 
@@ -116,7 +144,7 @@ class PlayHoldem:
 
         self.cpuMoneyText = gtk.TextView()
         self.cpuMoneyText.set_editable(False)
-        self.__setText(self.cpuMoneyText, "CPU: $10,000")
+        self.__setText(self.cpuMoneyText, "CPU: $" + locale.format("%d", self.cpu.balance, grouping=True))
 
         self.cpucard1 = gtk.EventBox()
         self.__setCardImage(self.cpucard1, self.cpu.card1, 220, 50)
@@ -154,7 +182,7 @@ class PlayHoldem:
 
         self.playerMoneyText = gtk.TextView()
         self.playerMoneyText.set_editable(False)
-        self.__setText(self.playerMoneyText, "You: $10,000")
+        self.__setText(self.playerMoneyText, "Player: $" + locale.format("%d", self.cpu.balance, grouping=True))
 
         dollarsign = gtk.Label()
         dollarsign.set_markup('<span color="#2E8B57"><span size="14000">$</span></span>') #2E8B57 same as SEA_GREEN
@@ -166,19 +194,26 @@ class PlayHoldem:
         self.bidText.set_justification(gtk.JUSTIFY_CENTER)
         self.bidText.set_size_request(70,20)
 
+        self.buttonShuffle = gtk.Button()
+        self.__setButton(self.buttonShuffle, 'SHUFFLE', self.DARK_SLATE_GRAY)
+        self.buttonShuffle.connect("clicked", self.__clickShuffle)
+
         #place all widgets into fixed layout
         self.layout.put(self.cpuMoneyText, 290, 0)
         self.layout.put(self.buttonFold, 0, 500)
         self.layout.put(self.buttonCheck, 105, 500)
         self.layout.put(self.buttonCall, 475, 500)
         self.layout.put(self.buttonRaiseBid, 580, 500)
-        self.layout.put(self.playerMoneyText, 290, 635)
+        self.layout.put(self.playerMoneyText, 285, 635)
         self.layout.put(dollarsign, 567, 470)
         self.layout.put(self.bidText, 580, 475)
+        self.layout.put(self.buttonShuffle, 295, 700)
         self.layout.show()
 
         self.window.add(self.layout)
         self.window.show()
+
+        self.__toggleInterface(False)
 
 
     def main(self):
