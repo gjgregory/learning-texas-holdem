@@ -91,9 +91,9 @@ class PlayHoldem:
 
     def __cpuMove(self):
         self.game.call(self.cpu)
-        print 'sup'
-        if self.game.finished:
-            self.__toggleInterface(False)
+
+        if self.game.is_next(self.cpu):
+            self.__cpuMove()
 
     def __playerMove(self, opt, move):
         if move == 'FOLD':
@@ -118,12 +118,12 @@ class PlayHoldem:
             self.__toggleInterface(False)
             return True
         self.__updateDisplay()
-        if not self.game.finished:
+        if self.game.movecounter > 0 and not self.game.finished:
             self.__cpuMove()
         if self.game.finished:
             self.__toggleInterface(False)
-            return True
         self.__updateDisplay()
+        return True
 
     def __init__(self):
         self.game = texas_holdem.HoldemGame()

@@ -118,7 +118,8 @@ class HoldemGame:
             self.deal()
         #after dealing
         elif not self.finished:
-            if self.card5.rank is None: self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
+            if self.card5.rank is None:
+                self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
             #draw cards according to game progress
             if self.card1.rank is None:
                 self.card1 = self.deck.draw_card()
