@@ -107,7 +107,7 @@ class PlayHoldem:
         dollarsign.show()
 
         self.bidText = gtk.TextView()
-        self.__setText(self.bidText, "0")
+        self.__setText(self.bidText, str(texas_holdem.HoldemGame.BASE_BID))
         self.bidText.modify_base(gtk.STATE_NORMAL, SEA_GREEN)
         self.bidText.set_justification(gtk.JUSTIFY_CENTER)
         self.bidText.set_size_request(70,20)
