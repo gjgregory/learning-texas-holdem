@@ -4,7 +4,6 @@ import pygtk
 pygtk.require('2.0')
 import gtk
 import texas_holdem
-import time
 import locale
 
 class PlayHoldem:
@@ -65,7 +64,7 @@ class PlayHoldem:
         self.__setCardImage(self.card5, self.game.card5, 495, 250)
 
         self.__setText(self.cpuMoneyText, "CPU: $" + locale.format("%d", self.cpu.balance, grouping=True))
-        self.__setText(self.playerMoneyText, "Player: $" + locale.format("%d", self.cpu.balance, grouping=True))
+        self.__setText(self.playerMoneyText, "Player: $" + locale.format("%d", self.player.balance, grouping=True))
 
     def __setText(self, widget, text):
         buf = widget.get_buffer()
@@ -92,6 +91,7 @@ class PlayHoldem:
 
     def __cpuMove(self):
         self.game.call(self.cpu)
+        print 'sup'
         if self.game.finished:
             self.__toggleInterface(False)
 
@@ -116,11 +116,14 @@ class PlayHoldem:
 
         if self.game.finished:
             self.__toggleInterface(False)
+            return True
         self.__updateDisplay()
-        #time.sleep(1)
-        if self.game.is_next(self.cpu):
+        if not self.game.finished:
             self.__cpuMove()
-            self.__updateDisplay()
+        if self.game.finished:
+            self.__toggleInterface(False)
+            return True
+        self.__updateDisplay()
 
     def __init__(self):
         self.game = texas_holdem.HoldemGame()

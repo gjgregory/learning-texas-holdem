@@ -44,6 +44,7 @@ class HoldemGame:
         self.card5 = Card()
         self.pot = 0
         self.bid = self.BASE_BID
+        self.lastraise = 0
         self.players = []
         self.dealer = None
         self.movecounter = 0
@@ -84,6 +85,7 @@ class HoldemGame:
         self.card4 = Card()
         self.card5 = Card()
         self.bid = self.BASE_BID
+        self.lastraise = 0
         self.pot = 0
         self.movecounter = len(self.players)
         self.players_left = len(self.players)
@@ -106,6 +108,11 @@ class HoldemGame:
 
     def __process_round(self):
         self.movecounter = self.players_left #reset number of non-volatile moves to be performed.
+        #reset bid numbers for new round
+        for p in self.players:
+            p.bid = 0
+        self.bid = 0
+        self.lastraise = 0
         #before dealing
         if self.players[0].card1.rank is None:
             self.deal()
@@ -145,17 +152,19 @@ class HoldemGame:
             print "it's not the player's turn yet"
             return False
         #check if player's balance is too low or bid isn't high enough
-        if player.balance < (amount - player.bid) or self.bid > amount:
+        amount = min(player.balance, amount)
+        if amount < self.lastraise and amount != player.balance:
             print "invalid bid. try again."
             return False
         else:
-            if amount > self.bid:
-                self.movecounter = self.players_left #reset number of non-volatile moves to be performed.
+            self.movecounter = self.players_left #reset number of non-volatile moves to be performed.
             self.movecounter -= 1 #this move counts whether volatile or not
-            self.bid = amount
-            player.balance -= (amount - player.bid)
-            self.pot += (amount - player.bid)
-            player.bid = amount
+            if self.lastraise < amount:
+                self.lastraise = amount
+            self.bid += amount
+            player.balance -= amount
+            self.pot += amount
+            player.bid += amount
             #turn is over. ready next player's turn.
             self.__next_player()
             if self.movecounter == 0:
@@ -167,15 +176,18 @@ class HoldemGame:
         if not self.is_next(player):
             print "it's not the player's turn yet"
             return False
-        #check if player's balance is too low
-        if player.balance < (self.bid - player.bid):
-            print "player doesn't have enough money to call."
-            return False
         else:
+            #check if player's balance is too low
+            if player.balance <= self.bid - player.bid:
+                print "player went all in!"
+                self.pot += player.balance
+                player.bid += player.balance
+                player.balance = 0
+            else:
+                self.pot += self.bid - player.bid
+                player.balance -= self.bid - player.bid
+                player.bid = self.bid
             self.movecounter -= 1 #this is a non-volatile move
-            player.balance -= (self.bid - player.bid)
-            self.pot += (self.bid - player.bid)
-            player.bid = self.bid
             #turn is over. ready next player's turn.
             self.__next_player()
             if self.movecounter == 0:
