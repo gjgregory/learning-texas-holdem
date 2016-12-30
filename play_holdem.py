@@ -91,8 +91,8 @@ class PlayHoldem:
 
     def __cpuMove(self):
         self.game.call(self.cpu)
-
-        if self.game.is_next(self.cpu):
+        self.__updateDisplay()
+        if self.game.is_next(self.cpu) and not self.game.finished:
             self.__cpuMove()
 
     def __playerMove(self, opt, move):

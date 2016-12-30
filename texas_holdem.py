@@ -30,10 +30,11 @@ class Player:
         self.bid = 0
         self.balance = balance
         self.folded = False
+        self.bankrupt = False
 
 
 class HoldemGame:
-    BASE_BID = 10
+    BASE_BID = 0
 
     def __init__(self):
         self.deck = Deck()
@@ -55,7 +56,7 @@ class HoldemGame:
         #next player to have a turn is always at index 0
         temp = self.players.pop(0)
         self.players.append(temp)
-        while self.players[0].folded:
+        while self.players[0].folded or self.players[0].bankrupt:
             temp = self.players.pop(0)
             self.players.append(temp)
 
@@ -79,6 +80,7 @@ class HoldemGame:
             p.card2 = Card()
             p.bid = 0
             p.folded = False
+            p.bankrupt = False
         self.card1 = Card()
         self.card2 = Card()
         self.card3 = Card()
@@ -101,10 +103,25 @@ class HoldemGame:
         while self.players[0] != self.dealer:
             temp = self.players.pop(0)
             self.players.append(temp)
-        temp = self.players.pop(0)
-        self.players.append(temp)
+        #temp = self.players.pop(0)
+        #self.players.append(temp)
         print "turn order swapped"
-        return
+
+    def __resolve_game_abrupt(self):
+        if self.players[0].card1.rank is None:
+            self.deal()
+        if self.card1.rank is None:
+            self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
+            self.card1 = self.deck.draw_card()
+            self.card2 = self.deck.draw_card()
+            self.card3 = self.deck.draw_card()
+        if self.card4.rank is None:
+            self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
+            self.card4 = self.deck.draw_card()
+        elif self.card5.rank is None:
+            self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
+            self.card5 = self.deck.draw_card()
+        self.__resolve_game()
 
     def __process_round(self):
         self.movecounter = self.players_left #reset number of non-volatile moves to be performed.
@@ -147,6 +164,15 @@ class HoldemGame:
         else:
             return False
 
+    def __end_move(self):
+        print self.players_left, self.movecounter
+        if self.players_left == 0:
+            self.__resolve_game_abrupt()
+            for p in self.players:
+                p.bankrupt = False
+        elif self.movecounter == 0:
+            self.__process_round()
+
     def make_bid(self, player, amount):
         #check if it's the player's turn
         if not self.is_next(player):
@@ -163,13 +189,16 @@ class HoldemGame:
             if self.lastraise < amount:
                 self.lastraise = amount
             self.bid += amount
-            player.balance -= amount
-            self.pot += amount
-            player.bid += amount
+            self.pot += self.bid - player.bid
+            player.balance -= self.bid - player.bid
+            player.bid = self.bid
+            #player went all in
+            if player.balance == 0:
+                self.players_left -= 1 #the player can't make moves until next round
+                player.bankrupt = True
             #turn is over. ready next player's turn.
+            self.__end_move()
             self.__next_player()
-            if self.movecounter == 0:
-                self.__process_round()
             return True
 
     def call(self, player):
@@ -178,21 +207,22 @@ class HoldemGame:
             print "it's not the player's turn yet"
             return False
         else:
-            #check if player's balance is too low
+            #player went all in
             if player.balance <= self.bid - player.bid:
                 print "player went all in!"
                 self.pot += player.balance
                 player.bid += player.balance
                 player.balance = 0
+                self.players_left -= 1 #the player can't make moves until next round
+                player.bankrupt = True
             else:
                 self.pot += self.bid - player.bid
                 player.balance -= self.bid - player.bid
                 player.bid = self.bid
             self.movecounter -= 1 #this is a non-volatile move
             #turn is over. ready next player's turn.
+            self.__end_move()
             self.__next_player()
-            if self.movecounter == 0:
-                self.__process_round()
             return True
 
     def check(self, player):
@@ -206,9 +236,8 @@ class HoldemGame:
         else:
             self.movecounter -= 1 #this is a non-volatile move
             #turn is over. ready next player's turn.
+            self.__end_move()
             self.__next_player()
-            if self.movecounter == 0:
-                self.__process_round()
             return True
 
     def fold(self, player):
@@ -220,11 +249,10 @@ class HoldemGame:
         self.players_left -= 1 #the player can't make moves until next round
         player.folded = True
         #turn is over. ready next player's turn.
-        self.__next_player()
         if self.players_left == 1:
             #TODO: make player actually win the pot
             print "Some player won because some player folded!"
             self.__resolve_game()
-        elif self.movecounter == 0:
-            self.__process_round()
+        self.__end_move()
+        self.__next_player()
         return True
