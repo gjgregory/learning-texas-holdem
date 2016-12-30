@@ -218,6 +218,9 @@ class HoldemGame:
         if not self.is_next(player):
             print "it's not the player's turn yet"
             return False
+        elif player.bid == self.bid:
+            print "player has already bid enough. checking instead."
+            return self.check(player)
         else:
             #player went all in
             if player.balance <= self.bid - player.bid:

@@ -70,6 +70,14 @@ class PlayHoldem:
             self.__setCardImage(self.cpucard1, self.cpu.card1, 220, 50)
             self.__setCardImage(self.cpucard2, self.cpu.card2, 330, 50)
 
+        #deactivate buttons if moves shouldn't be performed
+        if self.player.bid < self.game.bid:
+            self.buttonCheck.set_sensitive(False)
+            self.buttonCall.set_sensitive(True)
+        else:
+            self.buttonCheck.set_sensitive(True)
+            self.buttonCall.set_sensitive(False)
+
     def __setText(self, widget, text):
         buf = widget.get_buffer()
         buf.set_text(text)
@@ -95,7 +103,8 @@ class PlayHoldem:
 
     def __cpuMove(self):
         print 'cpumove', 'turns left =', self.game.movecounter
-        self.game.call(self.cpu)
+        #self.game.call(self.cpu)
+        self.game.make_bid(self.cpu, 50) #for testing
         self.__updateDisplay(False)
         if self.game.is_next(self.cpu) and not self.game.finished:
             self.__cpuMove()
