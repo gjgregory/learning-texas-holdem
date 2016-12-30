@@ -36,7 +36,7 @@ class PlayHoldem:
 
     def __setCardImage(self, box, image, card):
         #change background color of widget
-        if card.img_path == 'art_assets/black_joker.png':
+        if card.img_path == texas_holdem.Card.FACE_DOWN:
             color = self.DARK_SLATE_BLUE
         else:
             color = self.GHOST_WHITE

@@ -1,7 +1,9 @@
 import random
 
 class Card:
-    def __init__(self, rank=None, suit=None, img_path='art_assets/black_joker.png'):
+    FACE_DOWN = 'art_assets/black_joker.png'
+    
+    def __init__(self, rank=None, suit=None, img_path=FACE_DOWN):
         self.rank = rank
         self.suit = suit
         self.img_path = img_path
@@ -26,14 +28,11 @@ class Deck:
 class Player:
     DEF_BALANCE = 10000
 
-    def __init__(self, balance=None):
+    def __init__(self, balance=DEF_BALANCE):
         self.card1 = Card()
         self.card2 = Card()
         self.bid = 0
-        if balance == None:
-            self.balance = Player.DEF_BALANCE
-        else:
-            self.balance = balance
+        self.balance = balance
         self.folded = False
         self.bankrupt = False
 
