@@ -65,6 +65,7 @@ class PlayHoldem:
 
         self.__setText(self.cpuMoneyText, "CPU: $" + locale.format("%d", self.cpu.balance, grouping=True))
         self.__setText(self.playerMoneyText, "Player: $" + locale.format("%d", self.player.balance, grouping=True))
+        self.__setText(self.bidText, str(self.game.lastraise))
 
         if update_cpu:
             self.__setCardImage(self.cpucard1, self.cpu.card1, 220, 50)
@@ -208,7 +209,7 @@ class PlayHoldem:
         dollarsign.show()
 
         self.bidText = gtk.TextView()
-        self.__setText(self.bidText, str(texas_holdem.HoldemGame.BASE_BID))
+        self.__setText(self.bidText, str(self.game.lastraise))
         self.bidText.modify_base(gtk.STATE_NORMAL, self.SEA_GREEN)
         self.bidText.set_justification(gtk.JUSTIFY_CENTER)
         self.bidText.set_size_request(70,20)
