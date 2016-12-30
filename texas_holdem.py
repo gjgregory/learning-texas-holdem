@@ -24,11 +24,16 @@ class Deck:
 
 
 class Player:
-    def __init__(self, balance=10000):
+    DEF_BALANCE = 10000
+
+    def __init__(self, balance=None):
         self.card1 = Card()
         self.card2 = Card()
         self.bid = 0
-        self.balance = balance
+        if balance == None:
+            self.balance = Player.DEF_BALANCE
+        else:
+            self.balance = balance
         self.folded = False
         self.bankrupt = False
 
@@ -81,6 +86,9 @@ class HoldemGame:
             p.bid = 0
             p.folded = False
             p.bankrupt = False
+            if p.balance == 0:
+                p.balance = Player.DEF_BALANCE
+
         self.card1 = Card()
         self.card2 = Card()
         self.card3 = Card()
@@ -103,9 +111,8 @@ class HoldemGame:
         while self.players[0] != self.dealer:
             temp = self.players.pop(0)
             self.players.append(temp)
-        #temp = self.players.pop(0)
-        #self.players.append(temp)
-        print "turn order swapped"
+        temp = self.players.pop(0)
+        self.players.append(temp)
 
     def __resolve_game_abrupt(self):
         if self.players[0].card1.rank is None:
@@ -118,7 +125,7 @@ class HoldemGame:
         if self.card4.rank is None:
             self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
             self.card4 = self.deck.draw_card()
-        elif self.card5.rank is None:
+        if self.card5.rank is None:
             self.deck.draw_card() #burn one as per standard poker rules (pointless, i know)
             self.card5 = self.deck.draw_card()
         self.__resolve_game()
@@ -151,6 +158,7 @@ class HoldemGame:
                 #TODO: resolve hand comparisons, reset queue and increment dealer
                 #...
                 #reset next player after dealer to first
+                return
         #reset next non-folded player after dealer to first
         while self.players[0] != self.dealer:
             temp = self.players.pop(0)
@@ -165,15 +173,19 @@ class HoldemGame:
             return False
 
     def __end_move(self):
-        print self.players_left, self.movecounter
         if self.players_left == 0:
             self.__resolve_game_abrupt()
             for p in self.players:
                 p.bankrupt = False
         elif self.movecounter == 0:
             self.__process_round()
+            return True
+        return False
 
     def make_bid(self, player, amount):
+        #check if bid/raise is actually a call
+        if amount == 0:
+            return self.call(player)
         #check if it's the player's turn
         if not self.is_next(player):
             print "it's not the player's turn yet"
@@ -197,8 +209,8 @@ class HoldemGame:
                 self.players_left -= 1 #the player can't make moves until next round
                 player.bankrupt = True
             #turn is over. ready next player's turn.
-            self.__end_move()
-            self.__next_player()
+            if not self.__end_move():
+                self.__next_player()
             return True
 
     def call(self, player):
@@ -221,8 +233,8 @@ class HoldemGame:
                 player.bid = self.bid
             self.movecounter -= 1 #this is a non-volatile move
             #turn is over. ready next player's turn.
-            self.__end_move()
-            self.__next_player()
+            if not self.__end_move():
+                self.__next_player()
             return True
 
     def check(self, player):
@@ -236,8 +248,8 @@ class HoldemGame:
         else:
             self.movecounter -= 1 #this is a non-volatile move
             #turn is over. ready next player's turn.
-            self.__end_move()
-            self.__next_player()
+            if not self.__end_move():
+                self.__next_player()
             return True
 
     def fold(self, player):
@@ -253,6 +265,8 @@ class HoldemGame:
             #TODO: make player actually win the pot
             print "Some player won because some player folded!"
             self.__resolve_game()
-        self.__end_move()
-        self.__next_player()
+            self.__next_player()
+            return True
+        if not self.__end_move():
+            self.__next_player()
         return True

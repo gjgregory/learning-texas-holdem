@@ -53,7 +53,7 @@ class PlayHoldem:
         widget.show()
         self.layout.put(widget, x, y)
 
-    def __updateDisplay(self):
+    def __updateDisplay(self, update_cpu):
         self.__setCardImage(self.playercard1, self.player.card1, 220, 450)
         self.__setCardImage(self.playercard2, self.player.card2, 330, 450)
 
@@ -66,6 +66,10 @@ class PlayHoldem:
         self.__setText(self.cpuMoneyText, "CPU: $" + locale.format("%d", self.cpu.balance, grouping=True))
         self.__setText(self.playerMoneyText, "Player: $" + locale.format("%d", self.player.balance, grouping=True))
 
+        if update_cpu:
+            self.__setCardImage(self.cpucard1, self.cpu.card1, 220, 50)
+            self.__setCardImage(self.cpucard2, self.cpu.card2, 330, 50)
+
     def __setText(self, widget, text):
         buf = widget.get_buffer()
         buf.set_text(text)
@@ -76,7 +80,7 @@ class PlayHoldem:
         self.game.shuffle()
         self.buttonShuffle.hide()
         self.__toggleInterface(True)
-        self.__updateDisplay()
+        self.__updateDisplay(True)
         if self.game.is_next(self.cpu):
             self.__cpuMove()
 
@@ -90,12 +94,14 @@ class PlayHoldem:
             self.buttonShuffle.show()
 
     def __cpuMove(self):
+        print 'cpumove', 'turns left =', self.game.movecounter
         self.game.call(self.cpu)
-        self.__updateDisplay()
+        self.__updateDisplay(False)
         if self.game.is_next(self.cpu) and not self.game.finished:
             self.__cpuMove()
 
     def __playerMove(self, opt, move):
+        print 'playermove', 'turns left =', self.game.movecounter
         if move == 'FOLD':
             if self.game.fold(self.player) == False:
                 return False
@@ -115,14 +121,15 @@ class PlayHoldem:
                 return False
 
         if self.game.finished:
+            self.__updateDisplay(not self.player.folded)
             self.__toggleInterface(False)
             return True
-        self.__updateDisplay()
-        if self.game.movecounter > 0 and not self.game.finished:
+        else:
             self.__cpuMove()
-        if self.game.finished:
-            self.__toggleInterface(False)
-        self.__updateDisplay()
+            self.__updateDisplay(False)
+            if self.game.finished:
+                self.__updateDisplay(True)
+                self.__toggleInterface(False)
         return True
 
     def __init__(self):
