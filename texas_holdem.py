@@ -1,23 +1,27 @@
 import random
 
+def enum(**enums):
+    return type('Enumerator', (), enums)
+
+Ranks = enum(TWO=0, THREE=1, FOUR=2, FIVE=3, SIX=4, SEVEN=5, EIGHT=6,
+            NINE=7, TEN=8, JACK=9, QUEEN=10, KING=11, ACE=12)
+Suits = enum(CLUBS=0, DIAMONDS=1, HEARTS=2, SPADES=3)
+
 class Card:
-    FACE_DOWN = 'art_assets/black_joker.png'
-    
-    def __init__(self, rank=None, suit=None, img_path=FACE_DOWN):
+    def __init__(self, rank=None, suit=None):
         self.rank = rank
         self.suit = suit
-        self.img_path = img_path
 
 
 class Deck:
     def __init__(self):
         self.cards = []
-        ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'jack', 'queen', 'king', 'ace']
-        suits = ['clubs', 'diamonds', 'hearts', 'spades']
+        ranks = range(13)
+        suits = [Suits.CLUBS, Suits.DIAMONDS, Suits.HEARTS, Suits.SPADES]
         #initialize the full set of playing cards
         for r in ranks:
             for s in suits:
-                self.cards.append(Card(r, s, 'art_assets/'+r+'_of_'+s+'.png'))
+                self.cards.append(Card(r, s))
 
     def draw_card(self):
         card =  random.choice(self.cards)

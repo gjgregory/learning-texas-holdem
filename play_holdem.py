@@ -6,18 +6,26 @@ import gtk
 import texas_holdem
 import locale
 
-class PlayHoldem:
-    #"constant" variables
-    SEA_GREEN = gtk.gdk.Color(0.18, 0.55, 0.34)
-    DARK_SLATE_BLUE = gtk.gdk.Color(0.28, 0.24, 0.55)
-    GHOST_WHITE = gtk.gdk.Color(0.97, 0.97, 1.0)
-    FIREBRICK = gtk.gdk.Color(0.7, 0.13, 0.13)
-    PERU = gtk.gdk.Color(0.8, 0.52, 0.25)
-    ROYAL_BLUE = gtk.gdk.Color(0.25, 0.41, 0.88)
-    FOREST_GREEN = gtk.gdk.Color(0.13, 0.55, 0.13)
-    SALOON_BROWN = gtk.gdk.Color(0.28, 0.14, 0.04)
-    DARK_SLATE_GRAY = gtk.gdk.Color(0.18, 0.31, 0.31)
 
+FACE_DOWN = 'art_assets/black_joker.png'
+SEA_GREEN = gtk.gdk.Color(0.18, 0.55, 0.34)
+DARK_SLATE_BLUE = gtk.gdk.Color(0.28, 0.24, 0.55)
+GHOST_WHITE = gtk.gdk.Color(0.97, 0.97, 1.0)
+FIREBRICK = gtk.gdk.Color(0.7, 0.13, 0.13)
+PERU = gtk.gdk.Color(0.8, 0.52, 0.25)
+ROYAL_BLUE = gtk.gdk.Color(0.25, 0.41, 0.88)
+FOREST_GREEN = gtk.gdk.Color(0.13, 0.55, 0.13)
+SALOON_BROWN = gtk.gdk.Color(0.28, 0.14, 0.04)
+DARK_SLATE_GRAY = gtk.gdk.Color(0.18, 0.31, 0.31)
+
+def enum(**enums):
+    return type('Enumerator', (), enums)
+
+RankStrings = {0:'2', 1:'3', 2:'4', 3:'5', 4:'6', 5:'7', 6:'8',
+                7:'9', 8:'10', 9:'jack', 10:'queen', 11:'king', 12:'ace'}
+SuitStrings = {0:'_of_clubs', 1:'_of_diamonds', 2:'_of_hearts', 3:'_of_spades'}
+
+class PlayHoldem:
 
     def delete_event(self, widget, event, data=None):
         return False
@@ -35,14 +43,17 @@ class PlayHoldem:
         widget.show()
 
     def __setCardImage(self, box, image, card):
-        #change background color of widget
-        if card.img_path == texas_holdem.Card.FACE_DOWN:
-            color = self.DARK_SLATE_BLUE
+        #get appropriate color/image
+        if card.rank == None:
+            color = DARK_SLATE_BLUE
+            img_path = FACE_DOWN
         else:
-            color = self.GHOST_WHITE
+            color = GHOST_WHITE
+            img_path = 'art_assets/' + RankStrings[card.rank] + SuitStrings[card.suit] + '.png'
+        #change background color of widget
         box.modify_bg(gtk.STATE_NORMAL, color)
         #assign (presumably transparent) image to widget
-        pixbuf = gtk.gdk.pixbuf_new_from_file(card.img_path)
+        pixbuf = gtk.gdk.pixbuf_new_from_file(img_path)
         scaled_pixbuf = pixbuf.scale_simple(100, 150, gtk.gdk.INTERP_BILINEAR)
         image.set_from_pixbuf(scaled_pixbuf)
 
@@ -147,7 +158,7 @@ class PlayHoldem:
 
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Machine Learning Texas Hold'em")
-        self.window.modify_bg(gtk.STATE_NORMAL, self.SALOON_BROWN)
+        self.window.modify_bg(gtk.STATE_NORMAL, SALOON_BROWN)
         self.window.connect("delete_event", self.delete_event)
         self.window.connect("destroy", self.destroy)
         self.window.set_border_width(100)
@@ -217,16 +228,16 @@ class PlayHoldem:
         self.__setCardImage(self.playercard2_box, self.playercard2, self.player.card2)
 
         self.buttonFold = gtk.Button()
-        self.__setButton(self.buttonFold, 'FOLD', self.FIREBRICK)
+        self.__setButton(self.buttonFold, 'FOLD', FIREBRICK)
         self.buttonFold.connect("clicked", self.__playerMove, 'FOLD')
         self.buttonCheck = gtk.Button()
-        self.__setButton(self.buttonCheck, 'CHECK', self.PERU)
+        self.__setButton(self.buttonCheck, 'CHECK', PERU)
         self.buttonCheck.connect("clicked", self.__playerMove, 'CHECK')
         self.buttonCall = gtk.Button()
-        self.__setButton(self.buttonCall, 'CALL', self.ROYAL_BLUE)
+        self.__setButton(self.buttonCall, 'CALL', ROYAL_BLUE)
         self.buttonCall.connect("clicked", self.__playerMove, 'CALL')
         self.buttonRaiseBid = gtk.Button()
-        self.__setButton(self.buttonRaiseBid, 'RAISE\n    or\n  BID', self.FOREST_GREEN)
+        self.__setButton(self.buttonRaiseBid, 'RAISE\n    or\n  BID', FOREST_GREEN)
         self.buttonRaiseBid.connect("clicked", self.__playerMove, 'RAISE_BID')
 
         self.playerMoneyText = gtk.TextView()
@@ -239,12 +250,12 @@ class PlayHoldem:
 
         self.bidText = gtk.TextView()
         self.__setText(self.bidText, str(self.game.lastraise))
-        self.bidText.modify_base(gtk.STATE_NORMAL, self.SEA_GREEN)
+        self.bidText.modify_base(gtk.STATE_NORMAL, SEA_GREEN)
         self.bidText.set_justification(gtk.JUSTIFY_CENTER)
         self.bidText.set_size_request(70,20)
 
         self.buttonShuffle = gtk.Button()
-        self.__setButton(self.buttonShuffle, 'SHUFFLE', self.DARK_SLATE_GRAY)
+        self.__setButton(self.buttonShuffle, 'SHUFFLE', DARK_SLATE_GRAY)
         self.buttonShuffle.connect("clicked", self.__clickShuffle)
 
         #place all widgets into fixed layout
