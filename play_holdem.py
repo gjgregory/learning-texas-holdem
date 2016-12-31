@@ -134,6 +134,7 @@ class PlayHoldem:
             if self.game.make_bid(self.player, int(buf.get_text(start, end))) == False:
                 return False
 
+        self.__updateDisplay(False)
         if self.game.finished:
             self.__updateDisplay(not self.player.folded)
             self.__toggleInterface(False)
@@ -142,7 +143,7 @@ class PlayHoldem:
             self.__cpuMove()
             self.__updateDisplay(False)
             if self.game.finished:
-                self.__updateDisplay(True)
+                self.__updateDisplay(not self.cpu.folded)
                 self.__toggleInterface(False)
         return True
 
