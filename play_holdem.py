@@ -138,7 +138,7 @@ class PlayHoldem:
             self.__updateDisplay(not self.player.folded)
             self.__toggleInterface(False)
             return True
-        else:
+        elif self.game.is_next(self.cpu):
             self.__cpuMove()
             self.__updateDisplay(False)
             if self.game.finished:
