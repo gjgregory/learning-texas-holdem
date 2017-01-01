@@ -117,13 +117,15 @@ class HoldemGame:
 
     def __is_straight(self, player, card_ranks, regular, royal):
         #royal and regular must be 0 or 1, denoting the range of straights to check for
-        if (regular and Ranks.ACE in card_ranks and Ranks.TWO in card_ranks and Ranks.THREE
-                    in card_ranks and Ranks.FOUR in card_ranks and Ranks.FIVE in card_ranks):
-            return True
         for i in range(Ranks.NINE+royal, Ranks.NINE-(8*regular), -1):
             if (i in card_ranks and i+1 in card_ranks and i+2 in card_ranks and
                         i+3 in card_ranks and i+4 in card_ranks):
+                s.kickers.append(i+4)
                 return True
+        if (regular and Ranks.ACE in card_ranks and Ranks.TWO in card_ranks and Ranks.THREE
+                    in card_ranks and Ranks.FOUR in card_ranks and Ranks.FIVE in card_ranks):
+            s.kickers.append(Ranks.FIVE)
+            return True
         return False
 
 
@@ -143,11 +145,11 @@ class HoldemGame:
                             card_ranks.count(Ranks.ACE)]
             suit_counts = [card_suits.count(Suits.CLUBS), card_suits.count(Suits.DIAMONDS), card_suits.count(Suits.HEARTS),
                             card_suits.count(Suits.SPADES)]
+            flush_hand = []
 
             #ROYAL/STRAIGHT FLUSH
             if 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
-                #only flush cards
-                flush_hand = []
+                #separate cards that are part of the flush
                 flush_suit = suit_counts.index(max(suit_counts))
                 for i in range(7):
                     if card_suits[i] == flush_suit:
@@ -166,6 +168,13 @@ class HoldemGame:
             if 4 in rank_counts or 5 in rank_counts or 6 in rank_counts or 7 in rank_counts:
                 print 'Four of a Kind!'
                 p.hand = Hands.FOUR_OF_A_KIND
+                while len(p.kickers) < 5:
+                    temp = rank_counts.index(max(rank_counts))
+                    if temp in card_ranks:
+                        p.kickers.append(temp)
+                        card_ranks.remove(temp)
+                    else:
+                        p.kickers.append(max(card_ranks))
             #FULL HOUSE
             elif (2 in rank_counts and 3 in rank_counts) or rank_counts.count(3) == 2:
                 print 'Full House!'
