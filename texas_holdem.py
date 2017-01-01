@@ -16,14 +16,15 @@ class Card:
 
 
 class Deck:
-    def __init__(self):
+    def __init__(self, num_decks):
         self.cards = []
         ranks = range(13)
-        suits = [Suits.CLUBS, Suits.DIAMONDS, Suits.HEARTS, Suits.SPADES]
+        suits = range(4)
         #initialize the full set of playing cards
-        for r in ranks:
-            for s in suits:
-                self.cards.append(Card(r, s))
+        for _ in range(num_decks):
+            for r in ranks:
+                for s in suits:
+                    self.cards.append(Card(r, s))
 
     def draw_card(self):
         card =  random.choice(self.cards)
@@ -46,9 +47,11 @@ class Player:
 
 class HoldemGame:
     BASE_BID = 0
+    DEF_NUM_DECKS = 1
 
-    def __init__(self):
-        self.deck = Deck()
+    def __init__(self, num_decks=DEF_NUM_DECKS):
+        self.deck = Deck(num_decks)
+        self.num_decks = num_decks
         self.card1 = Card()
         self.card2 = Card()
         self.card3 = Card()
@@ -85,7 +88,7 @@ class HoldemGame:
 
     def shuffle(self):
         #reset cards
-        self.deck = Deck()
+        self.deck = Deck(self.num_decks)
         for p in self.players:
             p.card1 = Card()
             p.card2 = Card()
