@@ -6,7 +6,7 @@ def enum(**enums):
 Ranks = enum(TWO=0, THREE=1, FOUR=2, FIVE=3, SIX=4, SEVEN=5, EIGHT=6,
             NINE=7, TEN=8, JACK=9, QUEEN=10, KING=11, ACE=12)
 Suits = enum(CLUBS=0, DIAMONDS=1, HEARTS=2, SPADES=3)
-Hands = enum(HIGH_CARD=0, PAIR=1, TWO_PAIR=2, THREE_OF_A_KID=3, STRAIGHT=4,
+Hands = enum(HIGH_CARD=0, PAIR=1, TWO_PAIR=2, THREE_OF_A_KIND=3, STRAIGHT=4,
             FLUSH=5, FULL_HOUSE=6, FOUR_OF_A_KIND=7, STRAIGHT_FLUSH=8, ROYAL_FLUSH=9)
 
 class Card:
@@ -43,6 +43,7 @@ class Player:
         self.folded = False
         self.bankrupt = False
         self.hand = 0
+        self.kickers = []
 
 
 class HoldemGame:
@@ -95,6 +96,7 @@ class HoldemGame:
             p.bid = 0
             p.folded = False
             p.bankrupt = False
+            p.kickers = []
             if p.balance == 0:
                 p.balance = Player.DEF_BALANCE
 
@@ -115,6 +117,9 @@ class HoldemGame:
 
     def __is_straight(self, player, card_ranks, regular, royal):
         #royal and regular must be 0 or 1, denoting the range of straights to check for
+        if (regular and Ranks.ACE in card_ranks and Ranks.TWO in card_ranks and Ranks.THREE
+                    in card_ranks and Ranks.FOUR in card_ranks and Ranks.FIVE in card_ranks):
+            return True
         for i in range(Ranks.NINE+royal, Ranks.NINE-(8*regular), -1):
             if (i in card_ranks and i+1 in card_ranks and i+2 in card_ranks and
                         i+3 in card_ranks and i+4 in card_ranks):
@@ -138,40 +143,57 @@ class HoldemGame:
                             card_ranks.count(Ranks.ACE)]
             suit_counts = [card_suits.count(Suits.CLUBS), card_suits.count(Suits.DIAMONDS), card_suits.count(Suits.HEARTS),
                             card_suits.count(Suits.SPADES)]
+
             #ROYAL/STRAIGHT FLUSH
             if 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
+                #only flush cards
+                flush_hand = []
+                flush_suit = suit_counts.index(max(suit_counts))
+                for i in range(7):
+                    if card_suits[i] == flush_suit:
+                        flush_hand.append(card_ranks[i])
                 #ROYAL FLUSH
-                if self.__is_straight(p, card_ranks, 0, 1):
+                if self.__is_straight(p, flush_hand, 0, 1):
                     print 'Royal Flush!'
+                    p.hand = Hands.ROYAL_FLUSH
                     continue
                 #STRAIGHT_FLUSH
-                elif self.__is_straight(p, card_ranks, 1, 0):
+                elif self.__is_straight(p, flush_hand, 1, 0):
                     print 'Straight Flush (KING)!'
+                    p.hand = Hands.STRAIGHT_FLUSH
                     continue
             #FOUR OF A KIND
             if 4 in rank_counts or 5 in rank_counts or 6 in rank_counts or 7 in rank_counts:
                 print 'Four of a Kind!'
+                p.hand = Hands.FOUR_OF_A_KIND
             #FULL HOUSE
             elif (2 in rank_counts and 3 in rank_counts) or rank_counts.count(3) == 2:
                 print 'Full House!'
+                p.hand = Hands.FULL_HOUSE
             #FLUSH
             elif 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
                 print 'Flush!'
+                p.hand = Hands.FLUSH
             #STRAIGHT
             elif self.__is_straight(p, card_ranks, 1, 1):
                 print 'Straight bro'
+                p.hand = Hands.STRAIGHT
             #THREE OF A KIND
             elif 3 in rank_counts:
                 print 'Three of a Kind!'
+                p.hand = Hands.THREE_OF_A_KIND
             #TWO PAIR
             elif rank_counts.count(2) >= 2:
                 print 'Two Pair!'
+                p.hand = Hands.TWO_PAIR
             #PAIR
             elif 2 in rank_counts:
                 print 'Pair!'
+                p.hand = Hands.PAIR
             #HIGH CARD
             else:
                 print 'A Measely High Card...', max(card_ranks)
+                p.hand = Hands.HIGH_CARD
 
 
     def __resolve_game(self):
