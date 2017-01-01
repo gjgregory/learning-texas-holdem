@@ -113,6 +113,15 @@ class HoldemGame:
         self.dealer = self.players[0]
         self.__next_player()
 
+    def __is_straight(self, player, card_ranks, regular, royal):
+        #royal and regular must be 0 or 1, denoting the range of straights to check for
+        for i in range(Ranks.NINE+royal, Ranks.NINE-(8*regular), -1):
+            if (i in card_ranks and i+1 in card_ranks and i+2 in card_ranks and
+                        i+3 in card_ranks and i+4 in card_ranks):
+                return True
+        return False
+
+
     def __get_winners(self):
         winners = []
 
@@ -132,42 +141,12 @@ class HoldemGame:
             #ROYAL/STRAIGHT FLUSH
             if 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
                 #ROYAL FLUSH
-                if (Ranks.TEN in card_ranks and Ranks.JACK in card_ranks and Ranks.QUEEN in card_ranks and
-                            Ranks.KING in card_ranks and Ranks.ACE in card_ranks):
+                if self.__is_straight(p, card_ranks, 0, 1):
                     print 'Royal Flush!'
                     continue
                 #STRAIGHT_FLUSH
-                elif (Ranks.NINE in card_ranks and Ranks.TEN in card_ranks and Ranks.JACK in card_ranks and
-                            Ranks.QUEEN in card_ranks and Ranks.KING in card_ranks):
+                elif self.__is_straight(p, card_ranks, 1, 0):
                     print 'Straight Flush (KING)!'
-                    continue
-                elif (Ranks.EIGHT in card_ranks and Ranks.NINE in card_ranks and Ranks.TEN in card_ranks and
-                            Ranks.JACK in card_ranks and Ranks.QUEEN in card_ranks):
-                    print 'Straight Flush (QUEEN)!'
-                    continue
-                elif (Ranks.SEVEN in card_ranks and Ranks.EIGHT in card_ranks and Ranks.NINE in card_ranks and
-                            Ranks.TEN in card_ranks and Ranks.JACK in card_ranks):
-                    print 'Straight Flush (JACK)!'
-                    continue
-                elif (Ranks.SIX in card_ranks and Ranks.SEVEN in card_ranks and Ranks.EIGHT in card_ranks and
-                            Ranks.NINE in card_ranks and Ranks.TEN in card_ranks):
-                    print 'Straight Flush (10)!'
-                    continue
-                elif (Ranks.FIVE in card_ranks and Ranks.SIX in card_ranks and Ranks.SEVEN in card_ranks and
-                            Ranks.EIGHT in card_ranks and Ranks.NINE in card_ranks):
-                    print 'Straight Flush (9)!'
-                    continue
-                elif (Ranks.FOUR in card_ranks and Ranks.FIVE in card_ranks and Ranks.SIX in card_ranks and
-                            Ranks.SEVEN in card_ranks and Ranks.EIGHT in card_ranks):
-                    print 'Straight Flush (8)!'
-                    continue
-                elif (Ranks.THREE in card_ranks and Ranks.FOUR in card_ranks and Ranks.FIVE in card_ranks and
-                            Ranks.SIX in card_ranks and Ranks.SEVEN in card_ranks):
-                    print 'Straight Flush (7)!'
-                    continue
-                elif (Ranks.TWO in card_ranks and Ranks.THREE in card_ranks and Ranks.FOUR in card_ranks and
-                            Ranks.FIVE in card_ranks and Ranks.SIX in card_ranks):
-                    print 'Straight Flush (6)!'
                     continue
             #FOUR OF A KIND
             if 4 in rank_counts or 5 in rank_counts or 6 in rank_counts or 7 in rank_counts:
@@ -179,33 +158,8 @@ class HoldemGame:
             elif 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
                 print 'Flush!'
             #STRAIGHT
-            elif (Ranks.TEN in card_ranks and Ranks.JACK in card_ranks and Ranks.QUEEN in card_ranks and
-                        Ranks.KING in card_ranks and Ranks.ACE in card_ranks):
-                print 'Straight (ACE)!'
-            elif (Ranks.NINE in card_ranks and Ranks.TEN in card_ranks and Ranks.JACK in card_ranks and
-                        Ranks.QUEEN in card_ranks and Ranks.KING in card_ranks):
-                print 'Straight (KING)!'
-            elif (Ranks.EIGHT in card_ranks and Ranks.NINE in card_ranks and Ranks.TEN in card_ranks and
-                        Ranks.JACK in card_ranks and Ranks.QUEEN in card_ranks):
-                print 'Straight (QUEEN)!'
-            elif (Ranks.SEVEN in card_ranks and Ranks.EIGHT in card_ranks and Ranks.NINE in card_ranks and
-                        Ranks.TEN in card_ranks and Ranks.JACK in card_ranks):
-                print 'Straight (JACK)!'
-            elif (Ranks.SIX in card_ranks and Ranks.SEVEN in card_ranks and Ranks.EIGHT in card_ranks and
-                        Ranks.NINE in card_ranks and Ranks.TEN in card_ranks):
-                print 'Straight (10)!'
-            elif (Ranks.FIVE in card_ranks and Ranks.SIX in card_ranks and Ranks.SEVEN in card_ranks and
-                        Ranks.EIGHT in card_ranks and Ranks.NINE in card_ranks):
-                print 'Straight (9)!'
-            elif (Ranks.FOUR in card_ranks and Ranks.FIVE in card_ranks and Ranks.SIX in card_ranks and
-                        Ranks.SEVEN in card_ranks and Ranks.EIGHT in card_ranks):
-                print 'Straight (8)!'
-            elif (Ranks.THREE in card_ranks and Ranks.FOUR in card_ranks and Ranks.FIVE in card_ranks and
-                        Ranks.SIX in card_ranks and Ranks.SEVEN in card_ranks):
-                print 'Straight (7)!'
-            elif (Ranks.TWO in card_ranks and Ranks.THREE in card_ranks and Ranks.FOUR in card_ranks and
-                        Ranks.FIVE in card_ranks and Ranks.SIX in card_ranks):
-                print 'Straight (6)!'
+            elif self.__is_straight(p, card_ranks, 1, 1):
+                print 'Straight bro'
             #THREE OF A KIND
             elif 3 in rank_counts:
                 print 'Three of a Kind!'
