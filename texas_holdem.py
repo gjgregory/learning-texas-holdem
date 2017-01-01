@@ -120,11 +120,11 @@ class HoldemGame:
         for i in range(Ranks.NINE+royal, Ranks.NINE-(8*regular), -1):
             if (i in card_ranks and i+1 in card_ranks and i+2 in card_ranks and
                         i+3 in card_ranks and i+4 in card_ranks):
-                s.kickers.append(i+4)
+                player.kickers.append(i+4)
                 return True
         if (regular and Ranks.ACE in card_ranks and Ranks.TWO in card_ranks and Ranks.THREE
                     in card_ranks and Ranks.FOUR in card_ranks and Ranks.FIVE in card_ranks):
-            s.kickers.append(Ranks.FIVE)
+            player.kickers.append(Ranks.FIVE)
             return True
         return False
 
@@ -145,12 +145,12 @@ class HoldemGame:
                             card_ranks.count(Ranks.ACE)]
             suit_counts = [card_suits.count(Suits.CLUBS), card_suits.count(Suits.DIAMONDS), card_suits.count(Suits.HEARTS),
                             card_suits.count(Suits.SPADES)]
-            flush_hand = []
 
             #ROYAL/STRAIGHT FLUSH
             if 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
                 #separate cards that are part of the flush
                 flush_suit = suit_counts.index(max(suit_counts))
+                flush_hand = []
                 for i in range(7):
                     if card_suits[i] == flush_suit:
                         flush_hand.append(card_ranks[i])
@@ -179,10 +179,31 @@ class HoldemGame:
             elif (2 in rank_counts and 3 in rank_counts) or rank_counts.count(3) == 2:
                 print 'Full House!'
                 p.hand = Hands.FULL_HOUSE
+                while len(p.kickers) < 5 and 3 in rank_counts:
+                    temp = len(rank_counts)-1 - rank_counts[::-1].index(3) #get index of last 3
+                    while len(p.kickers) < 5 and temp in card_ranks:
+                        p.kickers.append(temp)
+                        card_ranks.remove(temp)
+                    rank_counts[temp] = 0
+                while len(p.kickers) < 5:
+                    temp = rank_counts.index(2)
+                    while temp in card_ranks:
+                        p.kickers.append(temp)
+                        card_ranks.remove(temp)
             #FLUSH
             elif 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
                 print 'Flush!'
                 p.hand = Hands.FLUSH
+                #separate cards that are part of the flush
+                flush_suit = suit_counts.index(max(suit_counts))
+                flush_hand = []
+                for i in range(7):
+                    if card_suits[i] == flush_suit:
+                        flush_hand.append(card_ranks[i])
+                for _ in range(5):
+                    temp = max(flush_hand)
+                    p.kickers.append(temp)
+                    flush_hand.remove(temp)
             #STRAIGHT
             elif self.__is_straight(p, card_ranks, 1, 1):
                 print 'Straight bro'
@@ -191,18 +212,47 @@ class HoldemGame:
             elif 3 in rank_counts:
                 print 'Three of a Kind!'
                 p.hand = Hands.THREE_OF_A_KIND
+                temp = rank_counts.index(3)
+                for _ in range(3):
+                    p.kickers.append(temp)
+                    card_ranks.remove(temp)
+                for _ in range(2):
+                    temp = max(card_ranks)
+                    p.kickers.append(temp)
+                    card_ranks.remove(temp)
             #TWO PAIR
             elif rank_counts.count(2) >= 2:
                 print 'Two Pair!'
                 p.hand = Hands.TWO_PAIR
+                while len(p.kickers) < 4 and 2 in rank_counts:
+                    temp = len(rank_counts)-1 - rank_counts[::-1].index(2) #get index of last 2
+                    while temp in card_ranks:
+                        p.kickers.append(temp)
+                        card_ranks.remove(temp)
+                    rank_counts[temp] = 0
+                p.kickers.append(max(card_ranks))
             #PAIR
             elif 2 in rank_counts:
                 print 'Pair!'
                 p.hand = Hands.PAIR
+                temp = rank_counts.index(2)
+                for _ in range(2):
+                    p.kickers.append(temp)
+                    card_ranks.remove(temp)
+                for _ in range(3):
+                    temp = max(card_ranks)
+                    p.kickers.append(temp)
+                    card_ranks.remove(temp)
             #HIGH CARD
             else:
                 print 'A Measely High Card...', max(card_ranks)
                 p.hand = Hands.HIGH_CARD
+                for _ in range(5):
+                    temp = max(card_ranks)
+                    p.kickers.append(temp)
+                    card_ranks.remove(temp)
+
+            print p.kickers
 
 
     def __resolve_game(self):
