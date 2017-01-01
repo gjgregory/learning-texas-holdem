@@ -167,10 +167,10 @@ class HoldemGame:
                     print 'Straight Flush (6)!'
                     continue
             #FOUR OF A KIND
-            if 4 in rank_counts:
+            if 4 in rank_counts or 5 in rank_counts or 6 in rank_counts or 7 in rank_counts:
                 print 'Four of a Kind!'
             #FULL HOUSE
-            elif 2 in rank_counts and 3 in rank_counts:
+            elif (2 in rank_counts and 3 in rank_counts) or rank_counts.count(3) == 2:
                 print 'Full House!'
             #FLUSH
             elif 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
