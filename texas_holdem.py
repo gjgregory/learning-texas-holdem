@@ -68,8 +68,10 @@ class HoldemGame:
         self.movecounter = 0
         self.players_left = 0
         self.finished = False
+        self.winners = []
         self.tiebreaker = False
         self.tiebreaker_value = 0
+        self.everyone_folded = False
 
     def __next_player(self):
         #next player to have a turn is always at index 0
@@ -100,6 +102,7 @@ class HoldemGame:
             p.bid = 0
             p.folded = False
             p.bankrupt = False
+            p.hand = 0
             p.kickers = []
             if p.balance == 0:
                 p.balance = Player.DEF_BALANCE
@@ -115,6 +118,8 @@ class HoldemGame:
         self.movecounter = len(self.players)
         self.players_left = len(self.players)
         self.finished = False
+        self.everyone_folded = False
+        self.winners = []
         #rotate dealer
         self.dealer = self.players[0]
         self.__next_player()
@@ -143,17 +148,14 @@ class HoldemGame:
                     flush_hand.append(card_ranks[i])
             #ROYAL FLUSH
             if self.__is_straight(player, flush_hand, 0, 1):
-                print 'Royal Flush!'
                 player.hand = Hands.ROYAL_FLUSH
                 return
             #STRAIGHT_FLUSH
             elif self.__is_straight(player, flush_hand, 1, 0):
-                print 'Straight Flush (KING)!'
                 player.hand = Hands.STRAIGHT_FLUSH
                 return
         #FOUR OF A KIND
         if 4 in rank_counts or 5 in rank_counts or 6 in rank_counts or 7 in rank_counts:
-            print 'Four of a Kind!'
             player.hand = Hands.FOUR_OF_A_KIND
             while len(player.kickers) < 5:
                 temp = rank_counts.index(max(rank_counts))
@@ -164,7 +166,6 @@ class HoldemGame:
                     player.kickers.append(max(card_ranks))
         #FULL HOUSE
         elif (2 in rank_counts and 3 in rank_counts) or rank_counts.count(3) == 2:
-            print 'Full House!'
             player.hand = Hands.FULL_HOUSE
             while len(player.kickers) < 5 and 3 in rank_counts:
                 temp = len(rank_counts)-1 - rank_counts[::-1].index(3) #get index of last 3
@@ -179,7 +180,6 @@ class HoldemGame:
                     card_ranks.remove(temp)
         #FLUSH
         elif 5 in suit_counts or 6 in suit_counts or 7 in suit_counts:
-            print 'Flush!'
             player.hand = Hands.FLUSH
             #separate cards that are part of the flush
             flush_suit = suit_counts.index(max(suit_counts))
@@ -193,11 +193,9 @@ class HoldemGame:
                 flush_hand.remove(temp)
         #STRAIGHT
         elif self.__is_straight(player, card_ranks, 1, 1):
-            print 'Straight bro'
             player.hand = Hands.STRAIGHT
         #THREE OF A KIND
         elif 3 in rank_counts:
-            print 'Three of a Kind!'
             player.hand = Hands.THREE_OF_A_KIND
             temp = rank_counts.index(3)
             for _ in range(3):
@@ -209,7 +207,6 @@ class HoldemGame:
                 card_ranks.remove(temp)
         #TWO PAIR
         elif rank_counts.count(2) >= 2:
-            print 'Two Pair!'
             player.hand = Hands.TWO_PAIR
             while len(player.kickers) < 4 and 2 in rank_counts:
                 temp = len(rank_counts)-1 - rank_counts[::-1].index(2) #get index of last 2
@@ -220,7 +217,6 @@ class HoldemGame:
             player.kickers.append(max(card_ranks))
         #PAIR
         elif 2 in rank_counts:
-            print 'Pair!'
             player.hand = Hands.PAIR
             temp = rank_counts.index(2)
             for _ in range(2):
@@ -232,15 +228,11 @@ class HoldemGame:
                 card_ranks.remove(temp)
         #HIGH CARD
         else:
-            print 'A Measely High Card...', max(card_ranks)
             player.hand = Hands.HIGH_CARD
             for _ in range(5):
                 temp = max(card_ranks)
                 player.kickers.append(temp)
                 card_ranks.remove(temp)
-
-        print player.kickers
-
 
     def __set_winners(self):
         self.winners = []
@@ -253,7 +245,6 @@ class HoldemGame:
                 self.winners.append(p)
         if len(self.winners) == 1:
             self.tiebreaker = False
-            print maxval
             return
         kicker_count = len(self.winners[0].kickers)
         for i in range(kicker_count):
@@ -271,28 +262,34 @@ class HoldemGame:
         self.tiebreaker = False
         return
 
-
     def __resolve_winnings(self):
-        for p in self.players:
-            #cumulate hand values
-            card_ranks = [p.card1.rank, p.card2.rank, self.card1.rank, self.card2.rank,
-                                self.card3.rank, self.card4.rank, self.card5.rank]
-            card_suits = [p.card1.suit, p.card2.suit, self.card1.suit, self.card2.suit,
-                                self.card3.suit, self.card4.suit, self.card5.suit]
-            rank_counts = [card_ranks.count(Ranks.TWO), card_ranks.count(Ranks.THREE), card_ranks.count(Ranks.FOUR),
-                            card_ranks.count(Ranks.FIVE), card_ranks.count(Ranks.SIX), card_ranks.count(Ranks.SEVEN),
-                            card_ranks.count(Ranks.EIGHT), card_ranks.count(Ranks.NINE), card_ranks.count(Ranks.TEN),
-                            card_ranks.count(Ranks.JACK), card_ranks.count(Ranks.QUEEN), card_ranks.count(Ranks.KING),
-                            card_ranks.count(Ranks.ACE)]
-            suit_counts = [card_suits.count(Suits.CLUBS), card_suits.count(Suits.DIAMONDS), card_suits.count(Suits.HEARTS),
-                            card_suits.count(Suits.SPADES)]
+        if self.everyone_folded:
+            for p in self.players:
+                if not p.folded:
+                    self.winners.append(p)
+                    break
+        else:
+            for p in self.players:
+                #cumulate hand values
+                card_ranks = [p.card1.rank, p.card2.rank, self.card1.rank, self.card2.rank,
+                                    self.card3.rank, self.card4.rank, self.card5.rank]
+                card_suits = [p.card1.suit, p.card2.suit, self.card1.suit, self.card2.suit,
+                                    self.card3.suit, self.card4.suit, self.card5.suit]
+                rank_counts = [card_ranks.count(Ranks.TWO), card_ranks.count(Ranks.THREE), card_ranks.count(Ranks.FOUR),
+                                card_ranks.count(Ranks.FIVE), card_ranks.count(Ranks.SIX), card_ranks.count(Ranks.SEVEN),
+                                card_ranks.count(Ranks.EIGHT), card_ranks.count(Ranks.NINE), card_ranks.count(Ranks.TEN),
+                                card_ranks.count(Ranks.JACK), card_ranks.count(Ranks.QUEEN), card_ranks.count(Ranks.KING),
+                                card_ranks.count(Ranks.ACE)]
+                suit_counts = [card_suits.count(Suits.CLUBS), card_suits.count(Suits.DIAMONDS), card_suits.count(Suits.HEARTS),
+                                card_suits.count(Suits.SPADES)]
 
-            self.__set_player_hand(p, card_ranks, card_suits, rank_counts, suit_counts)
+                self.__set_player_hand(p, card_ranks, card_suits, rank_counts, suit_counts)
 
-        self.__set_winners()
+            self.__set_winners()
 
-
-
+        num_winners = len(self.winners)
+        for p in self.winners:
+            p.balance += self.pot / num_winners
 
     def __resolve_game(self):
         self.finished = True
@@ -355,7 +352,6 @@ class HoldemGame:
             temp = self.players.pop(0)
             self.players.append(temp)
         self.__next_player()
-
 
     def is_next(self, player):
         if self.players[0] == player:
@@ -456,8 +452,7 @@ class HoldemGame:
         player.folded = True
         #turn is over. ready next player's turn.
         if self.players_left == 1:
-            #TODO: make player actually win the pot
-            print "Some player won because some player folded!"
+            self.everyone_folded = True
             self.__resolve_game()
             return True
         if not self.__end_move():

@@ -107,59 +107,62 @@ class PlayHoldem:
             self.buttonShuffle.show()
 
     def __winnerMessage(self):
-        if len(self.game.winners) == 1:
-            message = self.game.winners[0].name + " wins with a "
+        if self.game.everyone_folded:
+            message = self.game.winners[0].name + " wins for not folding!"
         else:
-            message = "Tie game! Both players had an equal "
-        winType = self.game.winners[0].hand
-        if winType == texas_holdem.Hands.HIGH_CARD:
-            message += "HIGH CARD."
-        elif winType == texas_holdem.Hands.PAIR:
-            message += "PAIR."
-        elif winType == texas_holdem.Hands.TWO_PAIR:
-            message += "TWO PAIR."
-        elif winType == texas_holdem.Hands.THREE_OF_A_KIND:
-            message += "THREE OF A KIND"
-        elif winType == texas_holdem.Hands.STRAIGHT:
-            message += "STRAIGHT."
-        elif winType == texas_holdem.Hands.FLUSH:
-            message += "FLUSH."
-        elif winType == texas_holdem.Hands.FULL_HOUSE:
-            message += "FULL HOUSE."
-        elif winType == texas_holdem.Hands.FOUR_OF_A_KIND:
-            message += "FOUR OF A KIND."
-        elif winType == texas_holdem.Hands.STRAIGHT_FLUSH:
-            message += "STRAIGHT FLUSH."
-        elif winType == texas_holdem.Hands.ROYAL_FLUSH:
-            message += "ROYAL FLUSH."
-        if self.game.tiebreaker:
-            cardRank = self.game.tiebreaker_value
-            if cardRank == texas_holdem.Ranks.TWO:
-                message += " (TWO tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.THREE:
-                message += " (THREE tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.FOUR:
-                message += " (FOUR tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.FIVE:
-                message += " (FIVE tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.SIX:
-                message += " (SIX tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.SEVEN:
-                message += " (SEVEN tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.EIGHT:
-                message += " (EIGHT tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.NINE:
-                message += " (NINE tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.TEN:
-                message += " (TEN tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.JACK:
-                message += " (JACK tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.QUEEN:
-                message += " (QUEEN tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.KING:
-                message += " (KING tiebreaker)"
-            elif cardRank == texas_holdem.Ranks.ACE:
-                message += " (ACE tiebreaker)"
+            if len(self.game.winners) == 1:
+                message = self.game.winners[0].name + " wins with a "
+            else:
+                message = "Tie game! Both players had an equal "
+            winType = self.game.winners[0].hand
+            if winType == texas_holdem.Hands.HIGH_CARD:
+                message += "HIGH CARD."
+            elif winType == texas_holdem.Hands.PAIR:
+                message += "PAIR."
+            elif winType == texas_holdem.Hands.TWO_PAIR:
+                message += "TWO PAIR."
+            elif winType == texas_holdem.Hands.THREE_OF_A_KIND:
+                message += "THREE OF A KIND"
+            elif winType == texas_holdem.Hands.STRAIGHT:
+                message += "STRAIGHT."
+            elif winType == texas_holdem.Hands.FLUSH:
+                message += "FLUSH."
+            elif winType == texas_holdem.Hands.FULL_HOUSE:
+                message += "FULL HOUSE."
+            elif winType == texas_holdem.Hands.FOUR_OF_A_KIND:
+                message += "FOUR OF A KIND."
+            elif winType == texas_holdem.Hands.STRAIGHT_FLUSH:
+                message += "STRAIGHT FLUSH."
+            elif winType == texas_holdem.Hands.ROYAL_FLUSH:
+                message += "ROYAL FLUSH."
+            if self.game.tiebreaker:
+                cardRank = self.game.tiebreaker_value
+                if cardRank == texas_holdem.Ranks.TWO:
+                    message += " (TWO tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.THREE:
+                    message += " (THREE tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.FOUR:
+                    message += " (FOUR tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.FIVE:
+                    message += " (FIVE tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.SIX:
+                    message += " (SIX tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.SEVEN:
+                    message += " (SEVEN tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.EIGHT:
+                    message += " (EIGHT tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.NINE:
+                    message += " (NINE tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.TEN:
+                    message += " (TEN tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.JACK:
+                    message += " (JACK tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.QUEEN:
+                    message += " (QUEEN tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.KING:
+                    message += " (KING tiebreaker)"
+                elif cardRank == texas_holdem.Ranks.ACE:
+                    message += " (ACE tiebreaker)"
         print message
 
     def __cpuMove(self):
