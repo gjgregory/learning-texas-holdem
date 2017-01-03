@@ -325,8 +325,12 @@ class HoldemGame:
         #reset bid numbers for new round
         for p in self.players:
             p.bid = 0
+            p.in_pot = 0
         self.bid = 0
         self.lastraise = 0
+        #only one player has money left
+        if self.players_left <= 1:
+            self.__resolve_game_abrupt()
         #before dealing
         if self.players[0].card1.rank is None:
             self.deal()
@@ -362,6 +366,7 @@ class HoldemGame:
             return False
 
     def __end_move(self):
+        #no players have money left
         if self.players_left == 0:
             self.__resolve_game_abrupt()
             for p in self.players:
@@ -372,17 +377,19 @@ class HoldemGame:
         return False
 
     def make_bid(self, player, amount):
-        #check if bid/raise is actually a call
-        if amount == 0:
-            return self.call(player)
         #check if it's the player's turn
         if not self.is_next(player):
             print "it's not the player's turn yet"
             return False
+        #check if bid/raise is actually a call
+        if amount == 0:
+            return self.call(player)
         #check if player's balance is too low or bid isn't high enough
-        amount = min(player.balance, amount)
-        if amount < self.lastraise and amount != player.balance:
+        if amount < self.lastraise:
             print "invalid bid. try again."
+            return False
+        elif player.balance < amount + self.bid - player.bid:
+            print "player needs more money to raise."
             return False
         else:
             self.movecounter = self.players_left #reset number of non-volatile moves to be performed.

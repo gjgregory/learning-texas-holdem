@@ -202,7 +202,9 @@ class PlayHoldem:
             self.__setText(self.prompt, self.cpu.name + " called.")
         elif decision >= 2:
             bid_amount = random.randrange(self.game.lastraise, self.game.lastraise*2+1)
+            print 'stage 1 is', bid_amount
             bid_amount += 50 - (bid_amount % 50)
+            print 'stage 2 is', bid_amount
             self.game.make_bid(self.cpu, bid_amount)
             self.__setText(self.prompt, self.cpu.name + " raised the bet to " \
                     + locale.format("%d", self.game.bid, grouping=True) + ".")
@@ -366,6 +368,7 @@ class PlayHoldem:
         dollarsign.show()
 
         self.bidText = gtk.TextView()
+        self.bidText.set_editable(True)
         self.__setText(self.bidText, str(self.game.lastraise))
         self.bidText.modify_base(gtk.STATE_NORMAL, SEA_GREEN)
         self.bidText.set_justification(gtk.JUSTIFY_CENTER)
