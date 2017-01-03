@@ -41,6 +41,7 @@ class Player:
         self.card1 = Card()
         self.card2 = Card()
         self.bid = 0
+        self.in_pot = 0
         self.balance = balance
         self.folded = False
         self.bankrupt = False
@@ -100,6 +101,7 @@ class HoldemGame:
             p.card1 = Card()
             p.card2 = Card()
             p.bid = 0
+            p.in_pot = 0
             p.folded = False
             p.bankrupt = False
             p.hand = 0
@@ -389,6 +391,7 @@ class HoldemGame:
                 self.lastraise = amount
             self.bid += amount
             self.pot += self.bid - player.bid
+            player.in_pot += self.bid - player.bid
             player.balance -= self.bid - player.bid
             player.bid = self.bid
             #player went all in
@@ -413,12 +416,14 @@ class HoldemGame:
             if player.balance <= self.bid - player.bid:
                 print "player went all in!"
                 self.pot += player.balance
+                player.in_pot += player.balance
                 player.bid += player.balance
                 player.balance = 0
                 self.players_left -= 1 #the player can't make moves until next round
                 player.bankrupt = True
             else:
                 self.pot += self.bid - player.bid
+                player.in_pot += self.bid - player.bid
                 player.balance -= self.bid - player.bid
                 player.bid = self.bid
             self.movecounter -= 1 #this is a non-volatile move

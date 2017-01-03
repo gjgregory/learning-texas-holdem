@@ -5,6 +5,7 @@ pygtk.require('2.0')
 import gtk
 import texas_holdem
 import locale
+import pango
 
 
 FACE_DOWN = 'art_assets/black_joker.png'
@@ -17,6 +18,8 @@ ROYAL_BLUE = gtk.gdk.Color(0.25, 0.41, 0.88)
 FOREST_GREEN = gtk.gdk.Color(0.13, 0.55, 0.13)
 SALOON_BROWN = gtk.gdk.Color(0.28, 0.14, 0.04)
 DARK_SLATE_GRAY = gtk.gdk.Color(0.18, 0.31, 0.31)
+PROMPT_FONT = pango.FontDescription('Monospace 14')
+DEFAULT_FONT = pango.FontDescription('Monospace 10')
 
 def enum(**enums):
     return type('Enumerator', (), enums)
@@ -67,9 +70,19 @@ class PlayHoldem:
         self.__setCardImage(self.card4_box, self.card4, self.game.card4)
         self.__setCardImage(self.card5_box, self.card5, self.game.card5)
 
+        if self.game.finished:
+            self.__setText(self.prompt, self.__getWinnerMessage())
+        self.layout.move(self.prompt, 325-int(self.prompt.get_buffer().get_char_count()*5.5), 0)
         self.__setText(self.cpuMoneyText, "CPU: $" + locale.format("%d", self.cpu.balance, grouping=True))
+        self.layout.move(self.cpuMoneyText, 325-(self.cpuMoneyText.get_buffer().get_char_count()*4), 70)
+        self.__setText(self.cpuBidText, "Bid: $" + locale.format("%d", self.cpu.in_pot, grouping=True))
+        self.layout.move(self.cpuBidText, 325-(self.cpuBidText.get_buffer().get_char_count()*4), 90)
         self.__setText(self.playerMoneyText, "Player: $" + locale.format("%d", self.player.balance, grouping=True))
+        self.layout.move(self.playerMoneyText, 325-(self.playerMoneyText.get_buffer().get_char_count()*4), 705)
+        self.__setText(self.playerBidText, "Bid: $" + locale.format("%d", self.player.in_pot, grouping=True))
+        self.layout.move(self.playerBidText, 325-(self.playerBidText.get_buffer().get_char_count()*4), 680)
         self.__setText(self.bidText, str(self.game.lastraise))
+
 
         if update_cpu:
             self.__setCardImage(self.cpucard1_box, self.cpucard1, self.cpu.card1)
@@ -90,6 +103,7 @@ class PlayHoldem:
         widget.show()
 
     def __clickShuffle(self, opt):
+        self.__setText(self.prompt, "")
         self.game.shuffle()
         self.buttonShuffle.hide()
         self.__toggleInterface(True)
@@ -106,14 +120,17 @@ class PlayHoldem:
         if not show:
             self.buttonShuffle.show()
 
-    def __winnerMessage(self):
+    def __getWinnerMessage(self):
         if self.game.everyone_folded:
-            message = self.game.winners[0].name + " wins for not folding!"
+            message = self.game.winners[0].name + " wins $" \
+                    + locale.format("%d", self.game.pot, grouping=True) + " for not folding!"
         else:
             if len(self.game.winners) == 1:
-                message = self.game.winners[0].name + " wins with a "
+                message = self.game.winners[0].name + " wins $" \
+                        + locale.format("%d", self.game.pot, grouping=True) + " with a "
             else:
-                message = "Tie game! Both players had an equal "
+                message = "Tie game! Both players win $" \
+                        + locale.format("%d", self.game.pot/2, grouping=True) + " with an equal "
             winType = self.game.winners[0].hand
             if winType == texas_holdem.Hands.HIGH_CARD:
                 message += "HIGH CARD."
@@ -163,7 +180,7 @@ class PlayHoldem:
                     message += " (KING tiebreaker)"
                 elif cardRank == texas_holdem.Ranks.ACE:
                     message += " (ACE tiebreaker)"
-        print message
+        return message
 
     def __cpuMove(self):
         print 'cpumove', 'turns left =', self.game.movecounter
@@ -195,7 +212,6 @@ class PlayHoldem:
 
         self.__updateDisplay(False)
         if self.game.finished:
-            self.__winnerMessage()
             self.__updateDisplay(not self.player.folded)
             self.__toggleInterface(False)
             return True
@@ -203,21 +219,19 @@ class PlayHoldem:
             self.__cpuMove()
             self.__updateDisplay(False)
             if self.game.finished:
-                self.__winnerMessage()
                 self.__updateDisplay(not self.cpu.folded)
                 self.__toggleInterface(False)
         return True
 
     def __init__(self):
+        #initialize a 2-player game
         self.game = texas_holdem.HoldemGame()
         self.player = texas_holdem.Player('The player')
         self.cpu = texas_holdem.Player('PokerMaster 3000')
         self.game.add_player(self.cpu)
         self.game.add_player(self.player)
-        #self.game.shuffle()
-        #self.game.deal()
 
-
+        #initialize window
         self.window = gtk.Window(gtk.WINDOW_TOPLEVEL)
         self.window.set_title("Machine Learning Texas Hold'em")
         self.window.modify_bg(gtk.STATE_NORMAL, SALOON_BROWN)
@@ -228,9 +242,19 @@ class PlayHoldem:
         #initialize the fixed layout and all of its widgets
         self.layout = gtk.Fixed()
 
+        self.prompt = gtk.TextView()
+        self.prompt.set_editable(False)
+        self.prompt.modify_font(PROMPT_FONT)
+        self.__setText(self.prompt, "Press the SHUFFLE button to start a new hand")
+
         self.cpuMoneyText = gtk.TextView()
         self.cpuMoneyText.set_editable(False)
+        self.cpuMoneyText.modify_font(DEFAULT_FONT)
         self.__setText(self.cpuMoneyText, "CPU: $" + locale.format("%d", self.cpu.balance, grouping=True))
+        self.cpuBidText = gtk.TextView()
+        self.cpuBidText.set_editable(False)
+        self.cpuBidText.modify_font(DEFAULT_FONT)
+        self.__setText(self.cpuBidText, "Bid: $" + locale.format("%d", self.cpu.in_pot, grouping=True))
 
         self.cpucard1_box = gtk.EventBox()
         self.cpucard1 = gtk.Image()
@@ -304,7 +328,12 @@ class PlayHoldem:
 
         self.playerMoneyText = gtk.TextView()
         self.playerMoneyText.set_editable(False)
+        self.playerMoneyText.modify_font(DEFAULT_FONT)
         self.__setText(self.playerMoneyText, "Player: $" + locale.format("%d", self.cpu.balance, grouping=True))
+        self.playerBidText = gtk.TextView()
+        self.playerBidText.set_editable(False)
+        self.playerBidText.modify_font(DEFAULT_FONT)
+        self.__setText(self.playerBidText, "Bid: $" + locale.format("%d", self.player.bid, grouping=True))
 
         dollarsign = gtk.Label()
         dollarsign.set_markup('<span color="#2E8B57"><span size="14000">$</span></span>') #2E8B57 same as SEA_GREEN
@@ -321,29 +350,33 @@ class PlayHoldem:
         self.buttonShuffle.connect("clicked", self.__clickShuffle)
 
         #place all widgets into fixed layout
-        self.layout.put(self.cpuMoneyText, 290, 0)
-        self.layout.put(self.buttonFold, 0, 500)
-        self.layout.put(self.buttonCheck, 105, 500)
-        self.layout.put(self.buttonCall, 475, 500)
-        self.layout.put(self.buttonRaiseBid, 580, 500)
-        self.layout.put(self.playerMoneyText, 285, 635)
-        self.layout.put(dollarsign, 567, 470)
-        self.layout.put(self.bidText, 580, 475)
-        self.layout.put(self.buttonShuffle, 295, 700)
-        self.layout.put(self.cpucard1_box, 220, 50)
-        self.layout.put(self.cpucard2_box, 330, 50)
-        self.layout.put(self.card1_box, 55, 250)
-        self.layout.put(self.card2_box, 165, 250)
-        self.layout.put(self.card3_box, 275, 250)
-        self.layout.put(self.card4_box, 385, 250)
-        self.layout.put(self.card5_box, 495, 250)
-        self.layout.put(self.playercard1_box, 220, 450)
-        self.layout.put(self.playercard2_box, 330, 450)
+        self.layout.put(self.prompt, 325-int(self.prompt.get_buffer().get_char_count()*5.5), 0)
+        self.layout.put(self.cpuMoneyText, 325-(self.cpuMoneyText.get_buffer().get_char_count()*4), 70)
+        self.layout.put(self.cpuBidText, 325-(self.cpuBidText.get_buffer().get_char_count()*4), 90)
+        self.layout.put(self.buttonFold, 0, 570)
+        self.layout.put(self.buttonCheck, 105, 570)
+        self.layout.put(self.buttonCall, 475, 570)
+        self.layout.put(self.buttonRaiseBid, 580, 570)
+        self.layout.put(self.playerMoneyText, 325-(self.playerMoneyText.get_buffer().get_char_count()*4), 705)
+        self.layout.put(self.playerBidText, 325-(self.playerBidText.get_buffer().get_char_count()*4), 680)
+        self.layout.put(dollarsign, 567, 540)
+        self.layout.put(self.bidText, 580, 545)
+        self.layout.put(self.buttonShuffle, 295, 770)
+        self.layout.put(self.cpucard1_box, 220, 120)
+        self.layout.put(self.cpucard2_box, 330, 120)
+        self.layout.put(self.card1_box, 55, 320)
+        self.layout.put(self.card2_box, 165, 320)
+        self.layout.put(self.card3_box, 275, 320)
+        self.layout.put(self.card4_box, 385, 320)
+        self.layout.put(self.card5_box, 495, 320)
+        self.layout.put(self.playercard1_box, 220, 520)
+        self.layout.put(self.playercard2_box, 330, 520)
         self.layout.show()
 
         self.window.add(self.layout)
         self.window.show()
 
+        #player clicks shuffle to start game
         self.__toggleInterface(False)
 
 
