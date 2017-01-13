@@ -345,13 +345,15 @@ class HoldemGame:
                                     self.card3.rank, self.card4.rank, self.card5.rank]
                 card_suits = [p.card1.suit, p.card2.suit, self.card1.suit, self.card2.suit,
                                     self.card3.suit, self.card4.suit, self.card5.suit]
-                rank_counts = [card_ranks.count(Ranks.TWO), card_ranks.count(Ranks.THREE), card_ranks.count(Ranks.FOUR),
-                                card_ranks.count(Ranks.FIVE), card_ranks.count(Ranks.SIX), card_ranks.count(Ranks.SEVEN),
-                                card_ranks.count(Ranks.EIGHT), card_ranks.count(Ranks.NINE), card_ranks.count(Ranks.TEN),
-                                card_ranks.count(Ranks.JACK), card_ranks.count(Ranks.QUEEN), card_ranks.count(Ranks.KING),
+                rank_counts = [card_ranks.count(Ranks.TWO), card_ranks.count(Ranks.THREE),
+                                card_ranks.count(Ranks.FOUR), card_ranks.count(Ranks.FIVE),
+                                card_ranks.count(Ranks.SIX), card_ranks.count(Ranks.SEVEN),
+                                card_ranks.count(Ranks.EIGHT), card_ranks.count(Ranks.NINE),
+                                card_ranks.count(Ranks.TEN), card_ranks.count(Ranks.JACK),
+                                card_ranks.count(Ranks.QUEEN), card_ranks.count(Ranks.KING),
                                 card_ranks.count(Ranks.ACE)]
-                suit_counts = [card_suits.count(Suits.CLUBS), card_suits.count(Suits.DIAMONDS), card_suits.count(Suits.HEARTS),
-                                card_suits.count(Suits.SPADES)]
+                suit_counts = [card_suits.count(Suits.CLUBS), card_suits.count(Suits.DIAMONDS),
+                                card_suits.count(Suits.HEARTS), card_suits.count(Suits.SPADES)]
 
                 self._set_player_hand(p, card_ranks, card_suits, rank_counts, suit_counts)
             self._set_winners()
