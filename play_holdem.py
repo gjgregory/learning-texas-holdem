@@ -43,6 +43,8 @@ BIG_FONT = pango.FontDescription('Monospace 14')
 DEFAULT_FONT = pango.FontDescription('Monospace 10')
 RankStrings = {0:'2', 1:'3', 2:'4', 3:'5', 4:'6', 5:'7', 6:'8',
                 7:'9', 8:'10', 9:'jack', 10:'queen', 11:'king', 12:'ace'}
+HandStrings = {0:'HIGH CARD', 1:'PAIR', 2:'TWO PAIR', 3:'THREE OF A KIND', 4:'STRAIGHT', 5:'FLUSH',
+                6:'FULL HOUSE', 7:'FOUR OF A KIND', 8:'STRAIGHT FLUSH', 9:'ROYAL FLUSH'}
 SuitStrings = {0:'_of_clubs', 1:'_of_diamonds', 2:'_of_hearts', 3:'_of_spades'}
 
 class PlayHoldem:
@@ -163,54 +165,11 @@ class PlayHoldem:
                 message = "Tie game! Both players win $" \
                         + locale.format("%d", self.game.pot/2, grouping=True) + " with an equal "
             win_type = self.game.winners[0].hand
-            if win_type == texas_holdem.Hands.HIGH_CARD:
-                message += "HIGH CARD."
-            elif win_type == texas_holdem.Hands.PAIR:
-                message += "PAIR."
-            elif win_type == texas_holdem.Hands.TWO_PAIR:
-                message += "TWO PAIR."
-            elif win_type == texas_holdem.Hands.THREE_OF_A_KIND:
-                message += "THREE OF A KIND"
-            elif win_type == texas_holdem.Hands.STRAIGHT:
-                message += "STRAIGHT."
-            elif win_type == texas_holdem.Hands.FLUSH:
-                message += "FLUSH."
-            elif win_type == texas_holdem.Hands.FULL_HOUSE:
-                message += "FULL HOUSE."
-            elif win_type == texas_holdem.Hands.FOUR_OF_A_KIND:
-                message += "FOUR OF A KIND."
-            elif win_type == texas_holdem.Hands.STRAIGHT_FLUSH:
-                message += "STRAIGHT FLUSH."
-            elif win_type == texas_holdem.Hands.ROYAL_FLUSH:
-                message += "ROYAL FLUSH."
+            message += HandStrings[win_type] + "."
             if self.game.tiebreaker:
                 card_rank = self.game.tiebreaker_value
-                if card_rank == texas_holdem.Ranks.TWO:
-                    message += " (TWO tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.THREE:
-                    message += " (THREE tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.FOUR:
-                    message += " (FOUR tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.FIVE:
-                    message += " (FIVE tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.SIX:
-                    message += " (SIX tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.SEVEN:
-                    message += " (SEVEN tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.EIGHT:
-                    message += " (EIGHT tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.NINE:
-                    message += " (NINE tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.TEN:
-                    message += " (TEN tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.JACK:
-                    message += " (JACK tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.QUEEN:
-                    message += " (QUEEN tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.KING:
-                    message += " (KING tiebreaker)"
-                elif card_rank == texas_holdem.Ranks.ACE:
-                    message += " (ACE tiebreaker)"
+                message += " (" + RankStrings[card_rank].upper() + " tiebreaker)"
+
         return message
 
     def _cpu_move(self):
@@ -293,7 +252,7 @@ class PlayHoldem:
         self.prompt = gtk.TextView()
         self.prompt.set_editable(False)
         self.prompt.modify_font(BIG_FONT)
-        self._set_text(self.prompt, "Press the SHUFFLE button to start a new hand")
+        self._set_text(self.prompt, "Press the SHUFFLE button to start a new hand.")
 
         self.pot_text = gtk.TextView()
         self.pot_text.set_editable(False)
